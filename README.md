@@ -14,8 +14,33 @@ There are a few practical applications of this effort of course, but mine is pro
 copy this yaml into a custom app in TrueNAS
 
 ```yaml
-
+x-network-name: &app_net_name proxy-net
+services:
+    net-manager:
+        build:
+            context: https://github.com/zjustus/truenas-apps-network-manager.git
+        restart: unless-stopped
+		environment:
+            APP_NET_NAME: *app_net_name
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+		networks:
+            - proxy-net
+networks:
+	proxy-net:
+		name: *app_net_name
+        driver: bridge
 ```
 
-**Other Apps**
+**Other Apps**  
 add the environment variable `VIRTUAL_PORT` to a container and this manager should pick it up.
+
+**HOST APPS**  
+if an app requires the docker host network, be sure to add `host.docker.internal` to the reverse proxy container
+
+```yaml
+services:
+	reverse-proxy:
+		extra_hosts:
+      		- "host.docker.internal:host-gateway"
+```

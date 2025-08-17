@@ -1,0 +1,39 @@
+x-network-name: &app_net_name proxy-net
+services:
+    net-manager:
+        container_name: net-manager
+        build: .
+        restart: unless-stopped
+        environment:
+            APP_NET_NAME: *app_net_name
+        networks:
+            - proxy-net
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./:/app/
+    dummyA:
+        image: busybox
+        container_name: dummyA
+        command: sh -c "tail -f /dev/null"
+        networks:
+            - testA
+        environment:
+            VIRTUAL_PORT: "8080"
+
+    dummyB:
+        image: busybox
+        container_name: dummyB
+        command: sh -c "tail -f /dev/null"
+        networks:
+            - testB
+        environment:
+            VIRTUAL_PORT: "9090"
+
+networks:
+    testA:
+        driver: bridge
+    testB:
+        driver: bridge
+    proxy-net:
+        name: *app_net_name
+        driver: bridge
